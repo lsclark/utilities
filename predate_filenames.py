@@ -75,7 +75,7 @@ def mtime_fname(path):
     """
     mtime = path.stat().st_mtime
     d = datetime.date.fromtimestamp(mtime)
-    return path.parent.joinpath(f'{d.year}_{d.month:02d}_{d.day:02d}_{path.name}')
+    return path.parent.joinpath(f'{d.year}_{d.month:02d}_{d.day:02d}_{path.name.replace(" ", "_")}')
 
 
 def _move_date(file):
@@ -92,6 +92,7 @@ def _move_date(file):
     """
     new = find_date_remove(file.stem)
     if new:
+        new = new.replace(' ', '_')
         return file.parent.joinpath(new+file.suffix)
     else:
         return mtime_fname(file)
@@ -111,7 +112,7 @@ def main(path, commit, preview):
                 else:
                     choice = input(
                         f'Rename - {file} -> {newname} - Continue? Y/[n]: ')
-                    if 'y' in choice[0].lower():
+                    if choice and 'y' in choice[0].lower():
                         file.rename(newname)
                         print('--> File renamed')
                     else:

@@ -15,3 +15,6 @@ Find duplicated files within a single directory
 
 ### predate_filenames.py
 Identify dates in filenames and move them to the front as YYYY_MM_DD. Falls back to using the modification time. 
+
+### xls_search.py
+Launches searches in a browser based on entries in an XLS(X) file.

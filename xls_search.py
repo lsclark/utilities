@@ -6,11 +6,14 @@ Assumes a contiguous rectangular range in the file. Joins entries
 within a row with ', ', issues a query for each row in the file.
 """
 
+import re
 import argparse
 import urllib
 from pathlib import Path
 from openpyxl import load_workbook
 import subprocess
+
+_NUMBER = re.compile(r'\D')
 
 
 def main(args):
@@ -19,12 +22,24 @@ def main(args):
     range = args.range.split(':')
     data = [', '.join(cell.value for cell in row)
             for row in ws[range[0]:range[1]]]
+    if args.condition:
+        if ':' not in args.condition:
+            cols = (args.condition, args.condition)
+        else:
+            cols = args.condition.split(':')
+        crng = (f'{cols[0]}{_NUMBER.sub("",range[0])}',
+                f'{cols[1]}{_NUMBER.sub("",range[1])}')
+        conds = [any(cell.value for cell in row)
+                 for row in ws[crng[0]:crng[1]]]
+    else:
+        conds = [True for _ in data]
 
     searches = []
-    for search in data:
-        search = urllib.parse.quote(search)
-        url = args.url.format(search.replace(" ", "+"))
-        searches.append(url)
+    for search, cond in zip(data, conds):
+        if cond:
+            search = urllib.parse.quote(search)
+            url = args.url.format(search.replace(" ", "+"))
+            searches.append(url)
 
     subprocess.run([args.browser]+searches)
 
@@ -43,6 +58,10 @@ if __name__ == "__main__":
     parser.add_argument("--url",
                         default="https://www.google.com/search?q={}",
                         help="The search pattern as a single-field format-string")
+    parser.add_argument("--condition",
+                        default=None,
+                        help="A column or column range (`C:D`). Only"
+                        " searches if one entry of that row is non-empty.")
 
     args = parser.parse_args()
     main(args)

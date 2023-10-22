@@ -108,13 +108,19 @@ def main(path, commit, preview):
                     print(f'Preview: {file} -> {newname}')
                 elif commit:
                     print(f'Renaming: {file} -> {newname}')
-                    file.rename(newname)
+                    try:
+                        file.rename(newname)
+                    except FileExistsError:
+                        print(f'--> [Error] {newname} already exists. Skipping')
                 else:
                     choice = input(
                         f'Rename - {file} -> {newname} - Continue? Y/[n]: ')
                     if choice and 'y' in choice[0].lower():
-                        file.rename(newname)
-                        print('--> File renamed')
+                        try:
+                            file.rename(newname)
+                            print('--> File renamed')
+                        except FileExistsError:
+                            print(f'--> [Error] {newname} already exists. Skipping')
                     else:
                         print('--> Skipped')
 
